@@ -110,6 +110,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Build.h" />
+    <ClInclude Include="Find.h" />
+    <ClInclude Include="Generate.h" />
+    <ClInclude Include="sha1.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Build.cpp" />
+    <ClCompile Include="Find.cpp" />
+    <ClCompile Include="Generate.cpp" />
+    <ClCompile Include="sha1.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
