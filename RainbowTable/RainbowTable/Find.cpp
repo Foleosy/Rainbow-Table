@@ -3,24 +3,20 @@
 (2) Read 1000 digests from standard input and  output the preimage.
 ------------*/
 
-#include <iostream>
-#include <unordered_map>
-#include <iomanip>
-#include "sha1.h"
+#define _CRT_SECURE_NO_DEPRECATE
+#include "Find.h"
 
 using namespace std;
+
 unsigned long TOTAL_SHA = 0;       // Count the number of hashes performed.
-
-unsigned char M[1024 * 512][3];    // array to store the word read from the table (head of chain)
-unsigned int  D[1024 * 512][5];    // array to store the digest read from the table  (end of chain)
-
-								   //-------   Data Structure for searching    -----------//
-unordered_map <unsigned int, unsigned int> HashTable;
-unordered_map <unsigned int, unsigned int>::const_iterator G;
+unsigned int readDigests[5000][5];
+unsigned char M[1000000][3];    // array to store the word read from the table (head of chain)
+unsigned int  D[1000000][5];    // array to store the digest read from the table  (end of chain)
 
 
-//-----------    Hash     ----------------------------//
-int Hash(unsigned char m[3], unsigned int d[5])
+Find::Find() {}
+
+int Find::Hash(unsigned char m[3], unsigned int d[5])
 {
 	SHA1 sha;
 	sha.Reset(); sha.Input(m[0]); sha.Input(m[1]); sha.Input(m[2]);
@@ -30,12 +26,7 @@ int Hash(unsigned char m[3], unsigned int d[5])
 	return(0);
 }
 
-//-----------    Reduce  -----------------------------//
-//   d:   input digest
-//   m:   output word
-//   i:   the index of the reduce function 
-//---------------------------------------------------//
-int Reduce(unsigned int d[5], unsigned char m[3], int i)
+int Find::Reduce(unsigned int d[5], unsigned char m[3], int i)
 {
 	m[0] = (unsigned char)((d[0] + i) % 256);   //8 bits
 	m[1] = (unsigned char)((d[1]) % 256);   //8 bits
@@ -44,27 +35,47 @@ int Reduce(unsigned int d[5], unsigned char m[3], int i)
 	return(0);
 }
 
-
-//------------  Read in the Table ------------------//
-//   Store the result in M and D                    //
-int ReadT()
+int Find::ReadT()
 {
+	ifstream oldTable("Hash.txt");
+	char nextChar;
+	string line;
+	string nextInputPart;
+	string a, e;
+	stringstream ss;
+	for (int j = 0; j < 20000; j++)
+	{
+	//	getline(oldTable, line);
+		oldTable >> a;
+		oldTable >> e;
+		D[j][0] = strtoul(a.c_str(), NULL, 16);
+		D[j][4] = strtoul(e.c_str(), NULL, 16);
+	}
+	
+	for (int j = 0; j < 20000; j++)
+	{
+		getline(oldTable, line);
+		if (line.length() >= 5) {
+			M[j][0] = line.at(0);
+			M[j][1] = line.at(2);
+			M[j][2] = line.at(4);
+		}
+	}
+
 	return(0);
 }
 
 
-//------------------------------------------------------------------------------------
-//      Given a digest,  search for the pre-image   answer_m[3].
-//------------------------------------------------------------------------------------
-int search(unsigned int target_d[5], unsigned char answer_m[3])
+int Find::search(unsigned int target_d[5], unsigned char answer_m[3])
 {
-	unsigned int j, i;
-	unsigned char Colour_m[MAX_LEN][3];
-	unsigned int  Colour_d[MAX_LEN][5];
-	unsigned int  flag[MAX_LEN];
+	unsigned int j = 0;
+	unsigned int i = 0;
+	long y = 0;
+	unsigned char Colour_m[5000][3];
+	unsigned int  Colour_d[5000][5];
+	bool isDigestFound = false;
 
-
-	for (j = 0; j< L_CHAIN; j++)
+	for (j = 0; j< 50; j++)
 	{
 		Colour_d[j][0] = target_d[0];
 		Colour_d[j][1] = target_d[1];
@@ -73,7 +84,7 @@ int search(unsigned int target_d[5], unsigned char answer_m[3])
 		Colour_d[j][4] = target_d[4];
 	}
 
-	for (j = 0; j< L_CHAIN; j++)
+	for (j = 0; j< 50; j++)
 	{
 		for (int k = 0; k< j + 1; k++)
 		{
@@ -81,8 +92,25 @@ int search(unsigned int target_d[5], unsigned char answer_m[3])
 			Hash(Colour_m[k], Colour_d[k]);
 
 			//-------- search for the digest Colour_d[k] in the data structure. 
+			for (y = 0; y < 999999; y += 50){
+				
+				if ((Colour_d[k][0] == D[y][0]) && (Colour_d[k][4] == D[y][4])) {
+					isDigestFound = true;
+					break;
+				}
+			}
 
 			//-------- if found, call transverse the chain starting from the head to find the pre-image.
+			if (isDigestFound) {
+				for (int z = 0; z < 50; z++) {
+					Hash(M[y - 50 + z], D[y - 50 + z]);
+					if ((D[y - 50 + z][0] == D[y][0]) && (D[y - 50 + z][4] == D[y][4])) {
+						answer_m = M[y - 50 + z];
+						return 1;
+					}
+				}
+
+			}
 
 		}
 	}
@@ -90,29 +118,55 @@ int search(unsigned int target_d[5], unsigned char answer_m[3])
 }
 
 
-//-----------   reading the next digest from the standard input  ----------------//
-void readnextd(unsigned  int d[5])
+void Find::readnextd(unsigned  int d[5], int i)
 {
-	cin.setf(ios::hex, ios::basefield); cin.setf(ios::uppercase);
-	cin >> d[0]; cin >> d[1]; cin >> d[2]; cin >> d[3]; cin >> d[4];
+	d[0] = D[i][0];
+	d[1] = D[i][1];
+	d[2] = D[i][2];
+	d[3] = D[i][3];
+	d[4] = D[i][4];
 }
 
+void Find::readInput(unsigned int readDigests[5000][5]) {
+	ifstream sampleInput("SAMPLE_INPUT.data");
+	string line;
+	string a, b, c, d, e;
+	
+	for (int j = 0; j < 5000; j++)
+	{
+		sampleInput >> a;
+		readDigests[j][0] = strtoul(a.c_str(), NULL, 16);
 
-int main(int argc, char*argv[])
+		sampleInput >> b;
+		readDigests[j][1] = strtoul(b.c_str(), NULL, 16);
+
+		sampleInput >> c;
+		readDigests[j][2] = strtoul(c.c_str(), NULL, 16);
+
+		sampleInput >> d;
+		readDigests[j][3] = strtoul(d.c_str(), NULL, 16);
+
+		sampleInput >> e;
+		readDigests[j][4] = strtoul(e.c_str(), NULL, 16);
+	}
+
+}
+
+int main()
 {
-	int found;
-	int total_found;
-	int total_not_found;
+	Find* find = new Find();
+	int found = 0;
+	int total_found = 0;
+	int total_not_found = 0;
 
 	SHA1        sha;
-	unsigned int d[5];   // 32 x 5 = 160 bits
+	unsigned int d[5] = { 0 };   // 32 x 5 = 160 bits
+	unsigned char m2[3] = { 0 };
 
+	//------------ R E A D     R A I N B O W    T A B L E  --------//
+	find->ReadT();       cout << "READ DONE" << endl;
 
-
-						 //------------ R E A D     R A I N B O W    T A B L E  --------//
-	ReadT();       cout << "READ DONE" << endl;
-
-
+	find->readInput(readDigests);
 	//--------  PROJECT  INPUT/OUTPUT FORMAT ----------------//
 
 	total_found = 0;
@@ -123,8 +177,8 @@ int main(int argc, char*argv[])
 
 	for (int i = 0; i<5000; i++)
 	{
-		readnextd(d);
-		if (search(d, m))
+		find->readnextd(d, i);
+		if (find->search(d, m2))
 		{
 			total_found++;
 			//------   print the word in hexdecimal format   -----------
@@ -147,4 +201,3 @@ int main(int argc, char*argv[])
 	cout << "Speedup factor F is: " << (5000.0 / TOTAL_SHA) * 8388608 << endl;
 
 }
-

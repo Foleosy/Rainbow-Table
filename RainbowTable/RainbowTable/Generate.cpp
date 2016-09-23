@@ -19,9 +19,8 @@ using namespace std;
 //-----   H A S H      ------------------------------------------------
 //   getrandom (m) :     generate a random word. 
 //---------------------------------------------------------------------
-int Generate::getrandom(unsigned char  m[3], int seed)
+int Generate::getrandom(unsigned char  m[3])
 {
-	srand(seed);
 	m[0] = (unsigned char)(rand() % 256);
 	m[1] = (unsigned char)(rand() % 256);
 	m[2] = (unsigned char)(rand() % 256);

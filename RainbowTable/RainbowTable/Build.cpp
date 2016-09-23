@@ -3,6 +3,7 @@ This program build the rainbow table  for the other program Find.cpp.
 ------------------------------------*/
 
 #define _CRT_SECURE_NO_DEPRECATE
+#define _CRT_SECURE_NO_WARNINGS
 #include "Build.h"
 
 using namespace std;
@@ -11,11 +12,13 @@ Build::Build() {}
 //Build::~Build() {}
 
 //----  return the next word to be considered 
-void Build::next_word(unsigned char m[3])
+unsigned char* Build::nextWord(unsigned char m[3])
 {
-	int seed = 5000;
-	Generate* generate = new Generate();
-	generate->getrandom(m, seed);
+	m[0] = (unsigned char)(rand() % 256);
+	m[1] = (unsigned char)(rand() % 256);
+	m[2] = (unsigned char)(rand() % 256);
+
+	return m;
 }
 
 //-------   Hash 
@@ -24,6 +27,7 @@ int Build::Hash(unsigned char m[3], unsigned int d[5])
 	SHA1 sha;
 	sha.Reset(); sha.Input(m[0]); sha.Input(m[1]); sha.Input(m[2]);
 	sha.Result(d);
+	
 	return(0);
 }
 
@@ -52,61 +56,65 @@ int Build::buildT()
 	unsigned int  d[5];
 	unsigned char m[3];
 
+	srand(time(NULL));
 
-	for (long i = 0; i < 1000; i++)
+	for (long i = 0; i < 40000; i++)
 	{
-		next_word(m);
-		
+		unsigned char randomM[3] = { (unsigned char)(rand() % 256), (unsigned char)(rand() % 256), (unsigned char)(rand() % 256) };
+		memcpy(m, randomM, 3);
+
 		// build the chain
-		for (int k = 100 * i; k < (100 * i + 100); k++) {
+		for (int k = 25 * i; k < (25 * i + 25); k++) {
 			M[k][0] = m[0];
 			M[k][1] = m[1];
 			M[k][2] = m[2];
-			Hash(m, d);
+			
+			SHA1 sha;
+			sha.Reset(); sha.Input(m[0]); sha.Input(m[1]); sha.Input(m[2]);
+			sha.Result(d);
+
 			D[k][0] = d[0];
 			D[k][1] = d[1];
 			D[k][2] = d[2];
 			D[k][3] = d[3];
 			D[k][4] = d[4];
-			Reduce(d, m, k);
+
+			m[0] = (unsigned char)((d[0] + i) % 256); //8 bits
+			m[1] = (unsigned char)((d[1]) % 256);   //8 bits 
+			m[2] = (unsigned char)((d[2]) % 256);   //8 bits
+
+			
 		}
 
-		// check whether to keep the chain. 
-		if (checkHashTable(d, i)) {
-			HashTable[i] = (*d);
-		}
-		
-		// You may want to drop the chain, for e.g. if the digest is already in the table.
-		// This form the main component of your program.
 	}
 
 	//---    Write to the output file
-	//note that to reduce the size of the table, it is not neccessary to write the full digest.
-
-	FILE * hashFile;
-	hashFile = fopen("Hashes.txt", "w");
-	for (long j = 0; j < 99999; j++)
+	ofstream hashFile("Hash.txt");
+	
+	cout.rdbuf(hashFile.rdbuf());
+	cout.setf(ios::hex, ios::basefield);    // format the output to be hex
+	cout.setf(ios::uppercase);
+	
+	for (long j = 0; j < 1999998; j += 25)
 	{
-	//	fwrite(&(M[i][0]), sizeof(unsigned char), 1, stdout);
-	//	fwrite(&(M[i][1]), sizeof(unsigned char), 1, stdout);
-	//	fwrite(&(M[i][2]), sizeof(unsigned char), 1, stdout);
-
-		fwrite(&(D[0][0]), sizeof(unsigned int), 1, hashFile);
-		fwrite(&(D[1][1]), sizeof(unsigned int), 1, hashFile);
-		fwrite(&(D[2][2]), sizeof(unsigned int), 1, hashFile);
-		fwrite(&(D[3][3]), sizeof(unsigned int), 1, hashFile);
-		fwrite(&(D[4][4]), sizeof(unsigned int), 1, hashFile);
+	
+		cout << setw(8) << setfill('0') << D[j][0]          // setw(8) set the width to be 8.
+			<< "  " << setw(8) << D[j][4] << endl;
 
 	}
 
-	
-	
+	for (long j = 0; j < 1999998; j += 25)
+	{
 
+		cout << M[j][0] << " " << M[j][1] << " " << M[j][2] << endl;
 
-	return(0);
+	}
+	hashFile.close();
+
+	return (0);
 }
 
-int main(int argc, char*argv[])
+/*int main(int argc, char*argv[])
 {
 	Build* build = new Build();
 	SHA1 sha;
@@ -115,5 +123,4 @@ int main(int argc, char*argv[])
 
 	//----   Build the table.
 	build->buildT();
-}
-
+}*/
