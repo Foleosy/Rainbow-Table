@@ -14,35 +14,50 @@ class Find
 {
 public:
 	Find();
-	//~Find();
+
+	int rows = 100000;
+	int chainLength = 240;
+	unsigned long totalSHA = 0;
+	unsigned int readDigests[5000][5] = { 0 };
+	unsigned char wordsFromFile[300000][3] = { 0 };
+	unsigned int digestsFromFile[300000][5] = { 0 };
+	unsigned int d[5] = { 0 };
+	unsigned char currentAnswer[3] = { 0 };
 	
 	//-----------    Hash     ----------------------------//
-	int Hash(unsigned char m[3], unsigned int d[5]);
+	int hash(unsigned char word[], unsigned int digest[]);
 
 	//-----------    Reduce  -----------------------------//
-	//   d:   input digest
-	//   m:   output word
-	//   i:   the index of the reduce function 
+	//   word:			output word
+	//   digest:		input digest
+	//   iterator:		the index of the reduce function 
 	//---------------------------------------------------//
-	int Reduce(unsigned int d[5], unsigned char m[3], int i);
+	int reduceOneFirst(unsigned char word[], unsigned int digest[], int iterator);
+	int reduceTwoFirst(unsigned char word[], unsigned int digest[], int iterator);
+	int reduceThreeFirst(unsigned char word[], unsigned int digest[], int iterator);
+	int reduceOneSecond(unsigned char word[], unsigned int digest[], int iterator);
+	int reduceTwoSecond(unsigned char word[], unsigned int digest[], int iterator);
+	int reduceThreeSecond(unsigned char word[], unsigned int digest[], int iterator);
+	int reduceOneThird(unsigned char word[], unsigned int digest[], int iterator);
+	int reduceTwoThird(unsigned char word[], unsigned int digest[], int iterator);
+	int reduceThreeThird(unsigned char word[], unsigned int digest[], int iterator);
 
-	//------------  Read in the Table ------------------//
-	//   Store the result in M and D                    //
-	int ReadT();
+	int reductionFunctionSorting(int reductionType, int tableNum, unsigned char word[][3], unsigned int digest[][5], int j);
+
+
+	//-------------------  Read in the Table ------------------//
+	//  Store the result in wordsFromFile and digestsFromFile  //
+	int readT();
+	void readFile(FILE * fileToRead, int tableNumber);
 
 	//------------------------------------------------------------------------------------
 	//      Given a digest,  search for the pre-image   answer_m[3].
 	//------------------------------------------------------------------------------------
-	int search(unsigned int target_d[5], unsigned char answer_m[3]);
+	//int search(unsigned int target_d[5], unsigned char answer_m[3]);
+	int search();
 
 	//-----------   reading the next digest from the standard input  ----------------//
-	void readnextd(unsigned int d[5], int i);
+	void readNextD(unsigned int d[], int i);
 
-	void readInput(unsigned int readDigests[5000][5]);
-
-
-	std::unordered_map <unsigned int, unsigned int> HashTable;
-	std::unordered_map <unsigned int, unsigned int>::const_iterator G;	//-------   Data Structure for searching    -----------//
-
+	void readInput();
 };
-
