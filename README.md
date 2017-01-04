@@ -1,11 +1,11 @@
 # RainbowTable
 
 ## Description
->#### Rainbow Table which reads in a sample of generated digests, and compares against pseudo-randomly generated rainbow tables to find the word which hashes to that particular digest. Done as part of a school assignment, and future refinements will be made in due time.
+>#### Rainbow Table which reads in a sample of generated digests, and compares against pseudo-randomly generated rainbow tables to find the word which hashes to that particular digest. Done as part of a school assignment, and no future refinements will be made.
 
 ### Development Environment Requirements
 ===
-- Recommended C++ 11 for compatibility in code, although deprecated functions have been used for now
+- Recommended C++ 11 for compatibility in code, although deprecated functions have been used
 - Developed in Visual Studio, Windows 8.1
 
 ### Dependencies 
